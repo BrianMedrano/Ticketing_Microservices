@@ -3,6 +3,8 @@ import { app } from './app';
 import { natsWrapper } from './nats-wrapper';
 import { TicketCreatedListener } from './events/listeners/ticket-created-listener';
 import { TicketUpdatedListener } from './events/listeners/ticket-updated-listener';
+import { ExpirationCompleteListener } from './events/listeners/expiration-complete-listener';
+import { PaymentCreatedListener } from './events/listeners/payment-created-listener';
 
 const start = async () => {
   //Make sure that JWT Key exists before starting
@@ -47,16 +49,8 @@ const start = async () => {
     //Start up our listeners
     new TicketCreatedListener(natsWrapper.client).listen();
     new TicketUpdatedListener(natsWrapper.client).listen();
-
-    process.on('unhandledRejection', (reason, p) => {
-      console.log(
-        'HERE!!!!!!! SOSOSOSOS Unhandled Rejection at: Promise',
-        p,
-        'reason:',
-        reason
-      );
-      // application specific logging, throwing an error, or other logic here
-    });
+    new ExpirationCompleteListener(natsWrapper.client).listen();
+    new PaymentCreatedListener(natsWrapper.client).listen();
 
     await mongoose.connect(process.env.MONGO_URI, {
       useNewUrlParser: true,
